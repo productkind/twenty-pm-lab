@@ -1,6 +1,6 @@
 # Twenty PM lab
 
-Your own copy of Twenty, a real open-source CRM, to investigate, break and fix in Little Parrot's technical skills learning path for product managers. It runs in GitHub Codespaces, in your browser, so nothing gets installed on your laptop.
+Your own copy of Twenty, a real open-source CRM, to investigate, break and fix in Little Parrot's technical skills learning journey for product managers. It runs in GitHub Codespaces, in your browser, so nothing gets installed on your laptop.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/productkind/twenty-pm-lab?quickstart=1)
 
