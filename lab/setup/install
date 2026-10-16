@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Runs once, when the codespace is created: downloads the app's images and
+# installs what the frontend needs. It writes how long each part took to
+# lab/setup-times.log.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
+
+LOG="$LAB_DIR/setup-times.log"
+began=$(date +%s)
+stamp() { echo "$1 after $(( $(date +%s) - began ))s" | tee -a "$LOG"; }
+
+trap 'echo; echo "Setup didn'"'"'t finish. Take a screenshot of this terminal and send it to us."' ERR
+
+container_started=$(date -u -d "$(ps -o lstart= -p 1)" +%FT%TZ 2>/dev/null || echo "unknown")
+memory_gb=$(awk '/^MemTotal:/ {printf "%d", $2 / 1048576}' /proc/meminfo)
+{
+  echo "Container started $container_started"
+  echo "Setup started $(date -u +%FT%TZ)"
+  echo "Machine: $(nproc) cores, $memory_gb GB memory"
+} | tee "$LOG"
+
+echo "Setting up your codespace. The first time, this takes several minutes."
+
+for _ in $(seq 1 60); do
+  docker info >/dev/null 2>&1 && break
+  sleep 2
+done
+
+( docker compose pull --quiet && stamp "Downloaded the app's images" ) &
+images=$!
+
+(
+  cd "$REPO_DIR"
+  yarn install
+  stamp "Installed the frontend's dependencies"
+  npx nx run-many -t build -p twenty-shared twenty-ui twenty-front-component-renderer
+  stamp "Built the packages the frontend uses"
+) &
+dependencies=$!
+
+wait "$images"
+wait "$dependencies"
+stamp "Setup finished"
+
+echo
+echo "Setup is finished. Type start-app and press Enter to start Twenty."

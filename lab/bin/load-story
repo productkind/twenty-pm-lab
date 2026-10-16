@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# load-story: loads the made-up companies, people and deals.
+# For now it loads Twenty's own demo data. Our story data replaces it later.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
+
+server=$(docker compose ps -q server)
+if [ -z "$server" ] || [ "$(docker inspect --format '{{.State.Health.Status}}' "$server")" != "healthy" ]; then
+  echo "The app isn't ready yet. Run start-app in another terminal, wait until it says Twenty is ready, then run load-story again."
+  exit 1
+fi
+
+workspaces=$(docker compose exec -T db psql -U postgres -d default -tAc "SELECT count(*) FROM core.workspace")
+if [ "$workspaces" -gt 0 ]; then
+  echo "The story data is already loaded."
+  exit 0
+fi
+
+echo "Loading the story data..."
+docker compose exec -T server yarn command:prod workspace:seed:dev --light
+docker compose exec -T server yarn command:prod cache:flush
+echo
+echo "The story data is loaded. Sign in with the email tim@apple.dev and the password tim@apple.dev."
