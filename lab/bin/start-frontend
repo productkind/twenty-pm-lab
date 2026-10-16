@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# start-frontend: starts the frontend from its source code, the copy engineers
+# change. It reloads by itself when the code changes, and passes the
+# frontend's requests on to the ready-built app's server on port 3000.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
+
+# The development server only answers addresses it knows.
+if [ -n "${CODESPACE_NAME:-}" ]; then
+  export __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="${FRONTEND_URL#https://}"
+fi
+
+echo "Starting the frontend from its source code. The first start takes a few minutes."
+echo "When it's ready, open port 3001 from the Ports tab: $FRONTEND_URL"
+echo
+cd "$REPO_DIR"
+exec npx nx start twenty-front
