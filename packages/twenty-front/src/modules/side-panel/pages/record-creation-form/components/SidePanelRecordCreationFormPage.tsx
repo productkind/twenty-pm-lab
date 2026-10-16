@@ -1,4 +1,3 @@
-import { getToastOptionsFromError } from '@/error-handler/utils/getToastOptionsFromError';
 import { ObjectMetadataIcon } from '@/object-metadata/components/ObjectMetadataIcon';
 import { HeaderIdentifier } from '@/ui/layout/page/components/HeaderIdentifier';
 import { PageCardHeader } from '@/ui/layout/page/components/PageCardHeader';
@@ -254,48 +253,47 @@ const SidePanelRecordCreationForm = ({
     }
 
     setIsSubmitting(true);
-    try {
-      const { error } = await settleRecordCreationDraft({
-        requestId,
-        draftRecord: computeRecordFormCreateRecordInput({
-          draftRecord,
-          fieldMetadataItems: objectMetadataItem.fields,
-          objectMetadataItems,
-        }),
-        shouldKeepOpen,
-      });
 
-      if (!isDefined(error)) {
-        if (shouldKeepOpen) {
-          setRecordCreationFormDraft(null);
-          setDraftValidationRuleViolations([]);
-          setFormResetCount(
-            (previousFormResetCount) => previousFormResetCount + 1,
-          );
-          enqueueToast({
-            status: 'success',
-            children: t`${objectMetadataItem.labelSingular} created`,
-          });
-        }
+    const { error } = await settleRecordCreationDraft({
+      requestId,
+      draftRecord: computeRecordFormCreateRecordInput({
+        draftRecord,
+        fieldMetadataItems: objectMetadataItem.fields,
+        objectMetadataItems,
+      }),
+      shouldKeepOpen,
+    });
 
-        return;
-      }
-
-      const serverViolations = getValidationRuleViolationsFromError(error);
-
-      setServerValidationRuleViolations(serverViolations);
-
-      if (serverViolations.length === 0) {
-        enqueueToast(getToastOptionsFromError({ error }));
-        return;
-      }
-
-      revealHiddenFieldsIfTargeted(
-        serverViolations.map((violation) => violation.fieldMetadataId),
-      );
-    } finally {
+    if (!isDefined(error)) {
       setIsSubmitting(false);
+
+      if (shouldKeepOpen) {
+        setRecordCreationFormDraft(null);
+        setDraftValidationRuleViolations([]);
+        setFormResetCount(
+          (previousFormResetCount) => previousFormResetCount + 1,
+        );
+        enqueueToast({
+          status: 'success',
+          children: t`${objectMetadataItem.labelSingular} created`,
+        });
+      }
+
+      return;
     }
+
+    const serverViolations = getValidationRuleViolationsFromError(error);
+
+    setServerValidationRuleViolations(serverViolations);
+
+    if (serverViolations.length === 0) {
+      return;
+    }
+
+    revealHiddenFieldsIfTargeted(
+      serverViolations.map((violation) => violation.fieldMetadataId),
+    );
+    setIsSubmitting(false);
   };
 
   const handleCreateClick = () => submitDraftRecord({ shouldKeepOpen: false });
