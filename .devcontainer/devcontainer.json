@@ -1,0 +1,35 @@
+{
+  "name": "Twenty PM lab",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/lab/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "lab/setup/install",
+  "forwardPorts": [3000, 3001],
+  "portsAttributes": {
+    "3000": {
+      "label": "Ready-built app",
+      "onAutoForward": "silent"
+    },
+    "3001": {
+      "label": "Frontend from source",
+      "onAutoForward": "notify"
+    }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["lab/docker-compose.yml"]
+    }
+  }
+}

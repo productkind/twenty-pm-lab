@@ -1,0 +1,91 @@
+# The parts that make up Twenty, the app you work on in this lab.
+# `start-app` starts all four, each in its own container, and prints
+# their logs in the terminal, labelled with the name of each part.
+
+name: twenty
+
+services:
+  # The server: receives every request from the browser, applies the
+  # rules, and reads from and writes to the database. It also sends the
+  # ready-built screens to your browser.
+  server:
+    image: twentycrm/twenty:v2.48.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - server-files:/app/packages/twenty-server/.local-storage
+    environment:
+      NODE_PORT: 3000
+      PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
+      REDIS_URL: redis://redis:6379
+      SERVER_URL: ${SERVER_URL}
+      AUTH_COOKIE_ALLOWED_ORIGINS: ${FRONTEND_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      STORAGE_TYPE: local
+      SIGN_IN_PREFILLED: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:3000/healthz
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10m
+    restart: unless-stopped
+
+  # The worker: runs jobs in the background, such as syncing email, so
+  # the server can answer the browser straight away.
+  worker:
+    image: twentycrm/twenty:v2.48.0
+    command: ["yarn", "worker:prod"]
+    volumes:
+      - server-files:/app/packages/twenty-server/.local-storage
+    environment:
+      PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
+      REDIS_URL: redis://redis:6379
+      SERVER_URL: ${SERVER_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      STORAGE_TYPE: local
+      DISABLE_DB_MIGRATIONS: "true"
+      DISABLE_CRON_JOBS_REGISTRATION: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # The database: where every company, person and deal is stored.
+  db:
+    image: postgres:16
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: default
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: pg_isready -U postgres -h localhost -d postgres
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Redis: a fast store the server uses as a cache, and as the queue of
+  # jobs waiting for the worker.
+  redis:
+    image: redis:7
+    command: ["--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  server-files:

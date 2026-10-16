@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# start-app: starts the ready-built app, the same package customers' servers
+# run, then shows the logs of its four parts.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
+
+echo "Starting the database, Redis, the server and the worker."
+echo "The first start sets up the database, which takes a few minutes."
+echo
+docker compose up --detach
+
+(
+  until [ "$(docker inspect --format '{{.State.Health.Status}}' "$(docker compose ps -q server)" 2>/dev/null)" = "healthy" ]; do
+    sleep 3
+  done
+  echo
+  echo "Twenty is ready. The ready-built app is on port 3000: $SERVER_URL"
+  echo "Next, run load-story in a new terminal (only the first time), then start-frontend."
+  echo
+) &
+
+echo "The logs of each part follow, labelled with its name. Leave this terminal open."
+echo "Ctrl+C stops the logs, not the app."
+echo
+exec docker compose logs --follow
