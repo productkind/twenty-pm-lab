@@ -4,6 +4,11 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
 
+if [ ! -f "$REPO_DIR/packages/twenty-front/build/index.html" ]; then
+  echo "The ready-built app's screens are missing, so setup didn't finish. Take a screenshot of this message and send it to us."
+  exit 1
+fi
+
 echo "Starting the database, Redis, the server and the worker."
 echo "The first start sets up the database, which takes a few minutes."
 echo

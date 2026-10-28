@@ -7,13 +7,14 @@ name: twenty
 services:
   # The server: receives every request from the browser, applies the
   # rules, and reads from and writes to the database. It also sends the
-  # ready-built screens to your browser.
+  # ready-built screens to your browser, the version customers have.
   server:
     image: twentycrm/twenty:v2.48.0
     ports:
       - "3000:3000"
     volumes:
       - server-files:/app/packages/twenty-server/.local-storage
+      - ../packages/twenty-front/build:/app/packages/twenty-server/dist/front:ro
     environment:
       NODE_PORT: 3000
       PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
