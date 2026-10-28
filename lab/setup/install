@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs once, when the codespace is created: downloads the app's images,
-# installs Twenty's dependencies and trims the history to the last 50 commits.
+# installs Twenty's dependencies, builds the screens the ready-built app sends,
+# and trims the history to the last 50 commits.
 # It writes how long each part took, and the codespace's size, to
 # lab/setup-times.log.
 set -euo pipefail
@@ -36,6 +37,8 @@ images=$!
   stamp "Installed the frontend's dependencies"
   npx nx run-many -t build -p twenty-shared twenty-ui twenty-front-component-renderer
   stamp "Built the packages the frontend uses"
+  NODE_OPTIONS=--max-old-space-size=8192 npx nx build twenty-front
+  stamp "Built the ready-built app's screens"
 ) &
 dependencies=$!
 

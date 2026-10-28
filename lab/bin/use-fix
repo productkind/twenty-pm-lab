@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# use-fix: switches your copy to the branch with a mission's fix already in it,
+# for when the AI agent's fix doesn't work. Your own changes are put aside
+# first, so you can get them back with git stash pop.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
+
+mission="${1:-1}"
+branch="mission-$mission-fix"
+cd "$REPO_DIR"
+
+git fetch --quiet origin "$branch"
+if [ -n "$(git status --porcelain)" ]; then
+  git stash push --include-untracked --quiet --message "My changes before $branch"
+  echo "Your own changes are put aside. To get them back later, run: git stash pop"
+fi
+git switch --quiet --track "origin/$branch" 2>/dev/null || git switch --quiet "$branch"
+
+echo "Your copy now has the fix from the $branch branch."
+echo "If start-frontend is running, the screens on port 3001 reload with it by themselves."
