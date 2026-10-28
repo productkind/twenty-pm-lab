@@ -39,6 +39,9 @@ images=$!
   stamp "Built the packages the frontend uses"
   NODE_OPTIONS=--max-old-space-size=8192 npx nx build twenty-front
   stamp "Built the ready-built app's screens"
+  # Port 3001 starts from the same screens, so start-frontend is ready at once.
+  rm -rf "$LAB_DIR/.frontend-from-source"
+  cp -r packages/twenty-front/build "$LAB_DIR/.frontend-from-source"
 ) &
 dependencies=$!
 
