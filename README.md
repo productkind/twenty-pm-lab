@@ -10,7 +10,7 @@ Your own copy of Twenty, a real open-source CRM, to investigate, break and fix i
 2. Wait until the terminal says **Setup is finished**. The first time, your codespace installs everything the app needs, which takes several minutes. That terminal only shows the setup, so you can't type in it.
 3. Open a new terminal with the **+** at the top right of the terminal panel. Type `start-app` and press Enter, then wait until it says **Twenty is ready**.
 4. Open another new terminal, type `load-story` and press Enter. You only need to do this once.
-5. Open one more terminal, type `start-frontend` and press Enter. The first time, it takes a few minutes to prepare the frontend's files, and it tells you when to open the page.
+5. Open one more terminal, type `start-frontend` and press Enter. It tells you when to open the page, and when to reload it after a change to the code.
 6. In the **Ports** tab, open port 3001 and sign in with `tim@apple.dev` as both the email and the password.
 
 The full setup guide, including what to do if something goes wrong: **[link to add]**
