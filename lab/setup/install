@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Runs once, when the codespace is created: downloads the app's images and
-# installs what the frontend needs. It writes how long each part took to
+# Runs once, when the codespace is created: downloads the app's images,
+# installs Twenty's dependencies and trims the history to the last 50 commits.
+# It writes how long each part took, and the codespace's size, to
 # lab/setup-times.log.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
@@ -38,9 +39,28 @@ images=$!
 ) &
 dependencies=$!
 
+# Keep the last 50 commits, enough to follow a change back through the
+# history, and drop the rest to save about 2 GB of the learner's storage.
+(
+  cd "$REPO_DIR"
+  git fetch --quiet --depth=50 origin main
+  git reflog expire --expire=now --all
+  git gc --quiet --prune=now
+  stamp "Trimmed the history to the last 50 commits"
+) &
+history=$!
+
 wait "$images"
 wait "$dependencies"
+wait "$history"
+
+# Yarn's package cache is only needed while installing, and takes about 4 GB.
+(cd "$REPO_DIR" && yarn cache clean --all >/dev/null)
+stamp "Emptied the package cache"
+
 stamp "Setup finished"
+echo "Codespace size: $(df -h /workspaces | awk 'NR == 2 {print $3 " used of " $2}')" | tee -a "$LOG"
 
 echo
-echo "Setup is finished. Type start-app and press Enter to start Twenty."
+echo "Setup is finished. You can't type in this terminal, so open a new one with the + at the top right of this panel."
+echo "Then type start-app and press Enter to start Twenty."
