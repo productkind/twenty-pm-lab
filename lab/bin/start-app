@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # start-app: starts the ready-built app, the same package customers' servers
-# run, then shows the logs of its four parts.
+# run, then shows the server's log.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
 
@@ -19,7 +19,7 @@ docker compose up --detach
   echo
 ) &
 
-echo "The logs of each part follow, labelled with its name. Leave this terminal open."
-echo "Ctrl+C stops the logs, not the app."
+echo "The server's log follows. Leave this terminal open."
+echo "Ctrl+C stops the log, not the app. To see another part's log, run show-log worker, show-log db or show-log redis in a new terminal."
 echo
-exec docker compose logs --follow
+exec docker compose logs --follow server

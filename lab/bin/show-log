@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# show-log: shows the log of one part of the app: server, worker, db or redis.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
+
+part="${1:-server}"
+case "$part" in
+  server | worker | db | redis) ;;
+  *)
+    echo "There's no part called $part. Try show-log server, show-log worker, show-log db or show-log redis."
+    exit 1
+    ;;
+esac
+
+echo "The $part's log follows. Ctrl+C stops the log, not the app."
+echo
+exec docker compose logs --follow --tail 50 "$part"

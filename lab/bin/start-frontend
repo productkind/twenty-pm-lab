@@ -10,8 +10,22 @@ if [ -n "${CODESPACE_NAME:-}" ]; then
   export __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="${FRONTEND_URL#https://}"
 fi
 
-echo "Starting the frontend from its source code. The first start takes a few minutes."
-echo "When it's ready, open port 3001 from the Ports tab: $FRONTEND_URL"
+echo "Starting the frontend from its source code."
 echo
+
+# Once the development server answers, ask for the frontend's first file, so
+# it starts preparing the rest before anyone opens the page.
+(
+  until curl --silent --fail --output /dev/null http://localhost:3001; do
+    sleep 3
+  done
+  curl --silent --output /dev/null http://localhost:3001/src/index.tsx || true
+  echo
+  echo "The frontend is running on port 3001: $FRONTEND_URL"
+  echo "The first time, it prepares the frontend's files before the page can show, which takes a few minutes."
+  echo "While it works, you'll see lines starting [linaria/wyw]. Once they stop, open port 3001 from the Ports tab."
+  echo
+) &
+
 cd "$REPO_DIR"
 exec npx nx start twenty-front
