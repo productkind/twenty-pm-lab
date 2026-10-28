@@ -1,31 +1,66 @@
 #!/usr/bin/env bash
-# start-frontend: starts the frontend from its source code, the copy engineers
-# change. It reloads by itself when the code changes, and passes the
-# frontend's requests on to the ready-built app's server on port 3000.
+# start-frontend: serves the frontend built from its source code, the copy
+# engineers change, on port 3001. It rebuilds the screens whenever the code
+# changes, and passes the frontend's requests for data on to the server on
+# port 3000.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
 
-# The development server only answers addresses it knows.
+# The frontend's server only answers addresses it knows.
 if [ -n "${CODESPACE_NAME:-}" ]; then
   export __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="${FRONTEND_URL#https://}"
 fi
 
-echo "Starting the frontend from its source code."
-echo
+out="$LAB_DIR/.frontend-from-source"
+log="$LAB_DIR/.frontend-build.log"
+export NODE_OPTIONS=--max-old-space-size=8192
+cd "$REPO_DIR/packages/twenty-front"
 
-# Once the development server answers, ask for the frontend's first file, so
-# it starts preparing the rest before anyone opens the page.
-(
-  until curl --silent --fail --output /dev/null http://localhost:3001; do
+# Engineers usually run a development server that sends the code as hundreds
+# of small files. Through a codespace's address that takes minutes per page,
+# so we serve a build instead: a few large files, as fast as port 3000.
+builder=""
+server=""
+trap 'kill $builder $server 2>/dev/null || true' EXIT
+npx vite build --watch --outDir "$out" > "$log" 2>&1 &
+builder=$!
+
+if [ ! -f "$out/index.html" ]; then
+  echo "Building the frontend from its source code. The first time, this takes about a minute and a half."
+  until grep -q "built in" "$log"; do
+    kill -0 "$builder" 2>/dev/null || { cat "$log"; exit 1; }
     sleep 3
   done
-  curl --silent --output /dev/null http://localhost:3001/src/index.tsx || true
-  echo
-  echo "The frontend is running on port 3001: $FRONTEND_URL"
-  echo "The first time, it prepares the frontend's files before the page can show, which takes a few minutes."
-  echo "While it works, you'll see lines starting [linaria/wyw]. Once they stop, open port 3001 from the Ports tab."
-  echo
-) &
+fi
 
-cd "$REPO_DIR"
-exec npx nx start twenty-front
+npx vite preview --port 3001 --strictPort --outDir "$out" > /dev/null 2>&1 &
+server=$!
+until curl --silent --fail --output /dev/null http://localhost:3001; do
+  sleep 1
+done
+
+echo
+echo "The frontend is running on port 3001: $FRONTEND_URL"
+echo "When the code changes, it rebuilds the screens by itself, which takes about a minute and a half. Then reload the page."
+echo "Leave this terminal open. Ctrl+C stops the frontend."
+echo
+
+# Say what the builder is doing, in words. Its first build only repeats the
+# screens setup already built, so it stays quiet.
+builds=0
+tail -n +1 -F "$log" 2>/dev/null | while read -r line; do
+  case "$line" in
+    *"build started"*)
+      builds=$((builds + 1))
+      [ "$builds" -gt 1 ] && echo "$(date +%H:%M) The code changed. Rebuilding the screens..."
+      ;;
+    *"built in"*)
+      [ "$builds" -gt 1 ] && echo "$(date +%H:%M) Rebuilt. Reload the page on port 3001 to see the change."
+      ;;
+    *".frontend-from-source/"*)
+      ;;
+    *"error during build"* | *"Error:"*)
+      echo "$line"
+      ;;
+  esac
+done

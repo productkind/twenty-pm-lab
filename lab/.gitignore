@@ -1,2 +1,4 @@
 .env
 setup-times.log
+.frontend-from-source/
+.frontend-build.log
