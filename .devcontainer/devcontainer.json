@@ -30,6 +30,32 @@
   "customizations": {
     "codespaces": {
       "openFiles": ["lab/docker-compose.yml"]
+    },
+    "vscode": {
+      "extensions": ["ms-ossdata.vscode-pgsql"],
+      "settings": {
+        "pgsql.serverGroups": [
+          {
+            "id": "twenty-pm-lab",
+            "name": "Your copy of Twenty",
+            "color": "#248aff"
+          }
+        ],
+        "pgsql.connections": [
+          {
+            "id": "twenty-db",
+            "groupId": "twenty-pm-lab",
+            "profileName": "Twenty database",
+            "server": "localhost",
+            "port": "5432",
+            "database": "default",
+            "user": "postgres",
+            "password": "postgres",
+            "authenticationType": "SqlLogin"
+          }
+        ],
+        "pgsql.copilot.accessMode": "rw"
+      }
     }
   }
 }

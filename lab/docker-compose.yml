@@ -59,9 +59,12 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # The database: where every company, person and deal is stored.
+  # The database: where every company, person and deal is stored. Its
+  # port is open so the PostgreSQL panel in the editor can connect to it.
   db:
     image: postgres:16
+    ports:
+      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
