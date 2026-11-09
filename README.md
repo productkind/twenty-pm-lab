@@ -11,7 +11,7 @@ Your own copy of Twenty, a real open-source CRM, to investigate, break and fix i
 3. Open a new terminal with the **+** at the top right of the terminal panel. Type `start-app` and press Enter, then wait until it says **Twenty is ready**.
 4. Open another new terminal, type `load-story` and press Enter. You only need to do this once.
 5. Open one more terminal, type `start-frontend` and press Enter. It tells you when to open the page, and when to reload it after a change to the code.
-6. In the **Ports** tab, open port 3001 and sign in with `tim@apple.dev` as both the email and the password.
+6. In the **Ports** tab, open port 3001 and sign in with `pm@animal.inc` as both the email and the password.
 
 The full setup guide, including what to do if something goes wrong: **[link to add]**
 
@@ -19,7 +19,7 @@ The full setup guide, including what to do if something goes wrong: **[link to a
 
 - Twenty v2.48.0, made by [Twenty.com, PBC](https://twenty.com). Twenty's own README is in [README.twenty.md](README.twenty.md).
 - Our additions: the codespace setup in `.devcontainer/`, and the commands and the list of the app's parts in `lab/`.
-- The companies, people and deals are made up. For now they're Twenty's own demo data.
+- The companies, people and deals are made up. They're Twenty's own demo data, renamed for the story by `lab/story/story.sql`.
 
 ## Licence
 

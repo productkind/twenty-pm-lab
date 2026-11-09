@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # load-story: loads the made-up companies, people and deals.
-# For now it loads Twenty's own demo data. Our story data replaces it later.
+# It loads Twenty's own demo data, then lab/story/story.sql changes its
+# names to the story's.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../setup/env.sh"
 
@@ -18,6 +19,8 @@ fi
 
 echo "Loading the story data..."
 docker compose exec -T server yarn command:prod workspace:seed:dev --light
+schema=$(docker compose exec -T db psql -U postgres -d default -tAc "SELECT nspname FROM pg_namespace WHERE nspname LIKE 'workspace\_%'")
+docker compose exec -T db psql -U postgres -d default -q -v ON_ERROR_STOP=1 -v schema="$schema" < "$(dirname "${BASH_SOURCE[0]}")/../story/story.sql"
 docker compose exec -T server yarn command:prod cache:flush
 echo
-echo "The story data is loaded. Sign in with the email tim@apple.dev and the password tim@apple.dev."
+echo "The story data is loaded. Sign in with pm@animal.inc as both the email and the password."

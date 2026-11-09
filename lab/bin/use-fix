@@ -17,4 +17,4 @@ fi
 git switch --quiet --track "origin/$branch" 2>/dev/null || git switch --quiet "$branch"
 
 echo "Your copy now has the fix from the $branch branch."
-echo "If start-frontend is running, the screens on port 3001 reload with it by themselves."
+echo "If start-frontend is running, it rebuilds the screens on port 3001 and tells you when to reload the page."
