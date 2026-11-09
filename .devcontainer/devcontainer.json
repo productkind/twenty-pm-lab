@@ -50,8 +50,7 @@
             "port": "5432",
             "database": "default",
             "user": "postgres",
-            "password": "postgres",
-            "authenticationType": "SqlLogin"
+            "authenticationType": "None"
           }
         ],
         "pgsql.copilot.accessMode": "rw"

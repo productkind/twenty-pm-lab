@@ -65,6 +65,8 @@ services:
 
   # The database: where every company, person and deal is stored. Its
   # port is open so the PostgreSQL panel in the editor can connect to it.
+  # It lets connections in without a password, so the panel doesn't ask
+  # for one: only you can reach your codespace, and the data is made up.
   db:
     image: postgres:16
     ports:
@@ -75,6 +77,8 @@ services:
       POSTGRES_DB: default
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      # Only applies when the database is first created.
+      POSTGRES_HOST_AUTH_METHOD: trust
     healthcheck:
       test: pg_isready -U postgres -h localhost -d postgres
       interval: 5s
