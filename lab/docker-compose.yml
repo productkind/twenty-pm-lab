@@ -20,7 +20,11 @@ services:
       PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
       REDIS_URL: redis://redis:6379
       SERVER_URL: ${SERVER_URL}
-      AUTH_COOKIE_ALLOWED_ORIGINS: ${FRONTEND_URL}
+      # GitHub's port forwarding can change where a page's requests say
+      # they come from to http://localhost:3001 or :3000. Without these,
+      # the server refuses to sign you in: "You do not have permission
+      # to perform this action."
+      AUTH_COOKIE_ALLOWED_ORIGINS: ${FRONTEND_URL},http://localhost:3001,http://localhost:3000
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       STORAGE_TYPE: local
       SIGN_IN_PREFILLED: "true"
