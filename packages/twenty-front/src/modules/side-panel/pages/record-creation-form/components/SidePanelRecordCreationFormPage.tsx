@@ -1,4 +1,5 @@
-import { currentUserState } from '@/auth/states/currentUserState';
+import { getToastOptionsFromError } from '@/error-handler/utils/getToastOptionsFromError';
+import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { ObjectMetadataIcon } from '@/object-metadata/components/ObjectMetadataIcon';
 import { HeaderIdentifier } from '@/ui/layout/page/components/HeaderIdentifier';
 import { PageCardHeader } from '@/ui/layout/page/components/PageCardHeader';
@@ -116,7 +117,9 @@ const SidePanelRecordCreationForm = ({
 
   const { settleRecordCreationDraft } = useRecordCreationFormSettle();
   const { enqueueToast } = useToast();
-  const currentUser = useAtomStateValue(currentUserState);
+  const currentWorkspaceMember = useAtomStateValue(
+    currentWorkspaceMemberState,
+  );
 
   const [recordCreationFormDraft, setRecordCreationFormDraft] =
     useAtomComponentState(recordCreationFormDraftComponentState);
@@ -258,51 +261,52 @@ const SidePanelRecordCreationForm = ({
     const draftRecordToCreate =
       objectMetadataItem.nameSingular === CoreObjectNameSingular.Company &&
       !isDefined(draftRecord.accountOwnerId)
-        ? { ...draftRecord, accountOwnerId: currentUser?.id }
+        ? { ...draftRecord, accountOwnerId: currentWorkspaceMember?.id }
         : draftRecord;
 
     setIsSubmitting(true);
+    try {
+      const { error } = await settleRecordCreationDraft({
+        requestId,
+        draftRecord: computeRecordFormCreateRecordInput({
+          draftRecord: draftRecordToCreate,
+          fieldMetadataItems: objectMetadataItem.fields,
+          objectMetadataItems,
+        }),
+        shouldKeepOpen,
+      });
 
-    const { error } = await settleRecordCreationDraft({
-      requestId,
-      draftRecord: computeRecordFormCreateRecordInput({
-        draftRecord: draftRecordToCreate,
-        fieldMetadataItems: objectMetadataItem.fields,
-        objectMetadataItems,
-      }),
-      shouldKeepOpen,
-    });
+      if (!isDefined(error)) {
+        if (shouldKeepOpen) {
+          setRecordCreationFormDraft(null);
+          setDraftValidationRuleViolations([]);
+          setFormResetCount(
+            (previousFormResetCount) => previousFormResetCount + 1,
+          );
+          enqueueToast({
+            status: 'success',
+            children: t`${objectMetadataItem.labelSingular} created`,
+          });
+        }
 
-    if (!isDefined(error)) {
-      setIsSubmitting(false);
-
-      if (shouldKeepOpen) {
-        setRecordCreationFormDraft(null);
-        setDraftValidationRuleViolations([]);
-        setFormResetCount(
-          (previousFormResetCount) => previousFormResetCount + 1,
-        );
-        enqueueToast({
-          status: 'success',
-          children: t`${objectMetadataItem.labelSingular} created`,
-        });
+        return;
       }
 
-      return;
+      const serverViolations = getValidationRuleViolationsFromError(error);
+
+      setServerValidationRuleViolations(serverViolations);
+
+      if (serverViolations.length === 0) {
+        enqueueToast(getToastOptionsFromError({ error }));
+        return;
+      }
+
+      revealHiddenFieldsIfTargeted(
+        serverViolations.map((violation) => violation.fieldMetadataId),
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const serverViolations = getValidationRuleViolationsFromError(error);
-
-    setServerValidationRuleViolations(serverViolations);
-
-    if (serverViolations.length === 0) {
-      return;
-    }
-
-    revealHiddenFieldsIfTargeted(
-      serverViolations.map((violation) => violation.fieldMetadataId),
-    );
-    setIsSubmitting(false);
   };
 
   const handleCreateClick = () => submitDraftRecord({ shouldKeepOpen: false });
